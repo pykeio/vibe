@@ -1,0 +1,34 @@
+{
+	"name": "@pyke/vibe",
+	"version": "0.1.0",
+	"publishConfig": {
+		"access": "public"
+	},
+	"main": "index.node",
+	"types": "index.d.ts",
+	"license": "Apache-2.0",
+	"description": "windows acrylic effects for electron 💫",
+	"keywords": [
+		"electron",
+		"mica",
+		"acrylic",
+		"windows"
+	],
+	"author": "pyke.io",
+	"repository": "github:pykeio/vibe",
+	"bugs": "https://github.com/pykeio/vibe/issues",
+	"homepage": "https://github.com/pykeio/vibe#readme",
+	"scripts": {
+		"build": "cargo-cp-artifact -nc index.node -- cargo build --message-format=json-render-diagnostics",
+		"build-debug": "npm run build --",
+		"build-release": "npm run build -- --release && cargo clean",
+		"install": "npm run build-release",
+		"test": "cargo test"
+	},
+	"devDependencies": {
+		"cargo-cp-artifact": "^0.1.6"
+	},
+	"peerDependencies": {
+		"electron": ">=11.0"
+	}
+}

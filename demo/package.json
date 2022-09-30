@@ -1,0 +1,10 @@
+{
+	"main": "src/main.js",
+	"scripts": {
+		"start": "electron ."
+	},
+	"dependencies": {
+		"@pyke/vibe": "file:..",
+		"electron": "*"
+	}
+}

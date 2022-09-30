@@ -1,0 +1,29 @@
+[package]
+publish = false
+name = "vibe"
+version = "0.1.0"
+description = "windows acrylic effects for electron 💫"
+authors = [ "pyke.io" ]
+license = "Apache-2.0"
+edition = "2021"
+exclude = [ "index.node" ]
+
+[lib]
+crate-type = [ "cdylib" ]
+
+[profile.release]
+lto = "fat"
+opt-level = "z"
+codegen-units = 8
+incremental = false
+panic = "abort"
+
+[dependencies]
+windows-sys = { version = "0.42", features = [ "Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_SystemInformation", "Win32_UI_Controls", "Win32_Graphics_Dwm" ] }
+thiserror = "1.0"
+lazy_static = "1.4"
+
+[dependencies.neon]
+version = "0.10"
+default-features = false
+features = [ "napi-6" ]
