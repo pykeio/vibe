@@ -1,11 +1,11 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@pyke/vibe': ^0.0.1-dev
+  '@pyke/vibe': file:..
   electron: '*'
 
 dependencies:
-  '@pyke/vibe': 0.0.1-dev_electron@21.0.1
+  '@pyke/vibe': file:.._electron@21.0.1
   electron: 21.0.1
 
 packages:
@@ -26,15 +26,6 @@ packages:
       global-tunnel-ng: 2.7.1
     transitivePeerDependencies:
       - supports-color
-    dev: false
-
-  /@pyke/vibe/0.0.1-dev_electron@21.0.1:
-    resolution: {integrity: sha512-isbv3UqCWpuiv/41Z67BfaFsHtuCdBADJyPwC+lpPiGYL9lsOQO7WcRKfi9AkSjE5r1u15QlGjkRom6qkYW1JA==}
-    requiresBuild: true
-    peerDependencies:
-      electron: '>=11.0'
-    dependencies:
-      electron: 21.0.1
     dev: false
 
   /@sindresorhus/is/0.14.0:
@@ -562,4 +553,17 @@ packages:
     dependencies:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
+    dev: false
+
+  file:.._electron@21.0.1:
+    resolution: {directory: .., type: directory}
+    id: file:..
+    name: '@pyke/vibe'
+    version: 0.1.1
+    os: [win32]
+    requiresBuild: true
+    peerDependencies:
+      electron: '>=11.0'
+    dependencies:
+      electron: 21.0.1
     dev: false

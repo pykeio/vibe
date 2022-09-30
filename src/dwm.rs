@@ -162,8 +162,7 @@ pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 		}
 	} else if is_win10_swca() || is_win11() {
 		unsafe {
-			fix_client_area(hwnd);
-			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, None);
+			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, Some((40, 40, 40, 0)));
 		}
 	} else {
 		return Err(VibeError::UnsupportedPlatformVersion("\"apply_acrylic()\" is only available on Windows 10 v1809+ or Windows 11"));

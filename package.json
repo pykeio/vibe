@@ -1,6 +1,6 @@
 {
 	"name": "@pyke/vibe",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"publishConfig": {
 		"access": "public"
 	},
@@ -13,6 +13,9 @@
 		"mica",
 		"acrylic",
 		"windows"
+	],
+	"os": [
+		"win32"
 	],
 	"author": "pyke.io",
 	"repository": "github:pykeio/vibe",
