@@ -20,7 +20,6 @@ panic = "abort"
 
 [dependencies]
 windows-sys = { version = "0.42", features = [ "Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_SystemInformation", "Win32_UI_Controls", "Win32_Graphics_Dwm" ] }
-thiserror = "1.0"
 lazy_static = "1.4"
 
 [dependencies.neon]

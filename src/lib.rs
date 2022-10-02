@@ -16,7 +16,6 @@ use std::sync::Mutex;
 
 use lazy_static::lazy_static;
 use neon::prelude::*;
-use thiserror::Error;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum VibeState {
@@ -26,14 +25,20 @@ pub enum VibeState {
 	Mica
 }
 
-#[derive(Error, Debug)]
 pub enum VibeError {
-	#[error("Unsupported platform version: {0}")]
 	UnsupportedPlatformVersion(&'static str),
-	#[error("Expected `effect` to be one of 'mica' or 'acrylic'; got `{0}`")]
 	UnsupportedEffect(String),
-	#[error("`vibe` was not setup before calling `applyEffect`!")]
 	Uninitialized
+}
+
+impl ToString for VibeError {
+	fn to_string(&self) -> String {
+		match self {
+			Self::UnsupportedPlatformVersion(msg) => format!("Unsupported platform version: {}", msg),
+			Self::UnsupportedEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
+			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned()
+		}
+	}
 }
 
 pub mod dwm;

@@ -26,7 +26,7 @@ use windows_sys::Win32::{
 	UI::Controls::MARGINS
 };
 
-use super::VibeError;
+use crate::VibeError;
 
 type WINDOWCOMPOSITIONATTRIB = u32;
 
