@@ -155,6 +155,16 @@ unsafe fn fix_client_area(hwnd: HWND) {
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
 }
 
+unsafe fn unfix_client_area(hwnd: HWND) {
+	let margins = MARGINS {
+		cxLeftWidth: 0,
+		cxRightWidth: 0,
+		cyBottomHeight: 0,
+		cyTopHeight: 0
+	};
+	DwmExtendFrameIntoClientArea(hwnd, &margins);
+}
+
 pub fn force_dark_theme(hwnd: HWND) -> Result<(), VibeError> {
 	if is_win11() {
 		unsafe {
@@ -204,6 +214,7 @@ pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 pub fn clear_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 	if is_win11_dwmsbt() {
 		unsafe {
+			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
 	} else if is_win10_swca() || is_win11() {
@@ -236,10 +247,12 @@ pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
 pub fn clear_mica(hwnd: HWND) -> Result<(), VibeError> {
 	if is_win11_dwmsbt() {
 		unsafe {
+			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
 	} else if is_win11() {
 		unsafe {
+			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, &0 as *const _ as _, 4);
 		}
 	} else {
