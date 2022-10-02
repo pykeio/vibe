@@ -127,10 +127,40 @@ pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	Ok(cx.undefined())
 }
 
+pub fn set_dark_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+	let browser_window = cx.argument::<JsObject>(0)?;
+	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
+	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
+	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
+	let hwnd = read_int32_le
+		.call(&mut cx, native_window_handle, [])?
+		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
+		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
+
+	let _ = dwm::force_dark_theme(hwnd);
+	Ok(cx.undefined())
+}
+
+pub fn set_light_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+	let browser_window = cx.argument::<JsObject>(0)?;
+	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
+	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
+	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
+	let hwnd = read_int32_le
+		.call(&mut cx, native_window_handle, [])?
+		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
+		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
+
+	let _ = dwm::force_light_theme(hwnd);
+	Ok(cx.undefined())
+}
+
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
 	cx.export_function("applyEffect", apply_effect)?;
 	cx.export_function("clearEffects", clear_effects)?;
+	cx.export_function("setDarkMode", set_dark_mode)?;
+	cx.export_function("setLightMode", set_light_mode)?;
 	cx.export_function("setup", setup)?;
 	Ok(())
 }
