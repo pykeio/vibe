@@ -31,12 +31,22 @@ type ValidEffect = 'mica' | 'acrylic';
 export function setup(app: App): void;
 
 /**
+ * Forces a window's acrylic effects to have a dark theme.
+ */
+export function setDarkMode(window: BrowserWindow): void;
+
+/**
+ * Forces a window's acrylic effects to have a light theme.
+ */
+export function setLightMode(window: BrowserWindow): void;
+
+/**
  * Applies an acrylic effect to a window. `effect` must be one of `mica` or `acrylic`. `mica` is supported only in
  * Windows 11. `acrylic` is supported in Windows 10 builds later than build 17763, though performance may suffer on
  * pre-Windows 11 builds.
  *
  * To change the theme of an effect, use Electron's `nativeTheme` module to override the default system theme for your
- * app's windows.
+ * app's windows, or for older versions of Electron, use `vibe.setDarkMode(win)` and `vibe.setLightMode(win)`.
  *
  * Ideally, this should be run **before** `show()`ing the window to avoid an awkward flash.
  *

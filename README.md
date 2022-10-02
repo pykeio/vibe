@@ -52,13 +52,16 @@ app.whenReady().then(() => {
 });
 ```
 
-Additionally, you can use Electron's `nativeTheme` module to force the theme of the Acrylic effect:
+Additionally, you can use Electron's `nativeTheme` module to force the theme of the acrylic effects:
 ```js
 const { nativeTheme } = require('electron');
-
 nativeTheme.themeSource = 'dark';
-vibe.applyEffect(mainWindow, 'acrylic');
-// The effect does not need to be re-applied after changing theme, just here for demonstration purposes 🙂
+```
+
+or, for older versions of Electron:
+```js
+vibe.setDarkMode(mainWindow);
+vibe.setLightMode(mainWindow);
 ```
 
 ## Thanks to:
