@@ -1,9 +1,6 @@
-const { app, BrowserWindow, nativeTheme } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const vibe = require('@pyke/vibe');
-
-// Force dark theme for demonstration purposes.
-nativeTheme.themeSource = 'dark';
 
 vibe.setup(app);
 
@@ -16,6 +13,9 @@ app.whenReady().then(() => {
 		show: false,
 		autoHideMenuBar: true
 	});
+
+	// Force dark theme for demonstration purposes.
+	vibe.setDarkMode(mainWindow);
 
 	vibe.applyEffect(mainWindow, 'acrylic');
 
