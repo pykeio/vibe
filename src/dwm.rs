@@ -30,6 +30,7 @@ use super::VibeError;
 
 type WINDOWCOMPOSITIONATTRIB = u32;
 
+const DWMWA_USE_IMMERSIVE_DARK_MODE: DWMWINDOWATTRIBUTE = 20i32;
 const DWMWA_MICA_EFFECT: DWMWINDOWATTRIBUTE = 1029i32;
 const DWMWA_SYSTEMBACKDROP_TYPE: DWMWINDOWATTRIBUTE = 38i32;
 
@@ -152,6 +153,36 @@ unsafe fn fix_client_area(hwnd: HWND) {
 		cyTopHeight: -1
 	};
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
+}
+
+pub fn force_dark_theme(hwnd: HWND) -> Result<(), VibeError> {
+	if is_win11() {
+		unsafe {
+			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &1 as *const _ as _, 4);
+		}
+	} else if is_win10_swca() {
+		unsafe {
+			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &1 as *const _ as _, 4);
+		}
+	} else {
+		return Err(VibeError::UnsupportedPlatformVersion("\"force_dark_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
+	}
+	Ok(())
+}
+
+pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
+	if is_win11() {
+		unsafe {
+			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &0 as *const _ as _, 4);
+		}
+	} else if is_win10_swca() {
+		unsafe {
+			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &0 as *const _ as _, 4);
+		}
+	} else {
+		return Err(VibeError::UnsupportedPlatformVersion("\"force_light_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
+	}
+	Ok(())
 }
 
 pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
