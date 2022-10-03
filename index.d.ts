@@ -61,3 +61,29 @@ export function applyEffect(window: BrowserWindow, effect: ValidEffect): void;
  * @throws if `window` is not a valid instance of `import('electron').BrowserWindow`
  */
 export function clearEffects(window: BrowserWindow): void;
+
+/**
+ * Utilities for detecting the platform version.
+ */
+export namespace platform {
+	/**
+	 * Returns `true` if the current Windows version is equal to or greater than Windows 10 version 1803, **but less than
+	 * Windows 11**. Windows 10 version 1809 is the first Windows version to support acrylic blurbehind.
+	 */
+	export function isWin10_1809(): boolean;
+
+	/**
+	 * Returns `true` if the current Windows version is equal to or greater than Windows 11.
+	 * Windows 11 is the first Windows version to support the Mica effect.
+	 */
+	export function isWin11(): boolean;
+
+	/**
+	 * Returns `true` if the current Windows version is equal to or greater than Windows 11 build 22H2.
+	 * Windows 11 build 22H2 is the first Windows version to support the (Fluent) Acrylic effect.
+	 *
+	 * Windows 11 builds earlier than 22H2 will use Windows Vista-style Aero DWM blur when applying the `acrylic`
+	 * effect.
+	 */
+	export function isWin11_22H2(): boolean;
+}

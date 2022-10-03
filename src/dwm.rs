@@ -102,21 +102,21 @@ fn get_windows_ver() -> Option<(u32, u32, u32)> {
 }
 
 #[inline]
-fn is_win10_swca() -> bool {
+pub fn is_win10_1809() -> bool {
 	let v = get_windows_ver().unwrap_or_default();
 	v.2 >= 17763 && v.2 < 22000
 }
 
 #[inline]
-fn is_win11() -> bool {
+pub fn is_win11() -> bool {
 	let v = get_windows_ver().unwrap_or_default();
 	v.2 >= 22000
 }
 
 #[inline]
-fn is_win11_dwmsbt() -> bool {
+pub fn is_win11_22h2() -> bool {
 	let v = get_windows_ver().unwrap_or_default();
-	v.2 >= 22523
+	v.2 >= 22621
 }
 
 unsafe fn SetWindowCompositionAttribute(hwnd: HWND, accent_state: ACCENT_STATE, color: Option<(u8, u8, u8, u8)>) {
@@ -170,7 +170,7 @@ pub fn force_dark_theme(hwnd: HWND) -> Result<(), VibeError> {
 		unsafe {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &1 as *const _ as _, 4);
 		}
-	} else if is_win10_swca() {
+	} else if is_win10_1809() {
 		unsafe {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &1 as *const _ as _, 4);
 		}
@@ -185,7 +185,7 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 		unsafe {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &0 as *const _ as _, 4);
 		}
-	} else if is_win10_swca() {
+	} else if is_win10_1809() {
 		unsafe {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &0 as *const _ as _, 4);
 		}
@@ -196,12 +196,12 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 }
 
 pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
-	if is_win11_dwmsbt() {
+	if is_win11_22h2() {
 		unsafe {
 			fix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_TRANSIENTWINDOW as *const _ as _, 4);
 		}
-	} else if is_win10_swca() || is_win11() {
+	} else if is_win10_1809() || is_win11() {
 		unsafe {
 			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, Some((40, 40, 40, 0)));
 		}
@@ -212,12 +212,12 @@ pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 }
 
 pub fn clear_acrylic(hwnd: HWND) -> Result<(), VibeError> {
-	if is_win11_dwmsbt() {
+	if is_win11_22h2() {
 		unsafe {
 			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
-	} else if is_win10_swca() || is_win11() {
+	} else if is_win10_1809() || is_win11() {
 		unsafe {
 			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_DISABLED, None);
 		}
@@ -228,7 +228,7 @@ pub fn clear_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 }
 
 pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
-	if is_win11_dwmsbt() {
+	if is_win11_22h2() {
 		unsafe {
 			fix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_MAINWINDOW as *const _ as _, 4);
@@ -245,7 +245,7 @@ pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
 }
 
 pub fn clear_mica(hwnd: HWND) -> Result<(), VibeError> {
-	if is_win11_dwmsbt() {
+	if is_win11_22h2() {
 		unsafe {
 			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);

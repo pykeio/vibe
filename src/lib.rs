@@ -162,6 +162,17 @@ pub fn set_light_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
+	let platform = cx.empty_object();
+
+	let is_win_10_1809 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win10_1809())))?;
+	let is_win_11 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win11())))?;
+	let is_win_22h2 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win11_22h2())))?;
+	platform.set(&mut cx, "isWin10_1809", is_win_10_1809)?;
+	platform.set(&mut cx, "isWin11", is_win_11)?;
+	platform.set(&mut cx, "isWin11_22H2", is_win_22h2)?;
+
+	cx.export_value("platform", platform)?;
+
 	cx.export_function("applyEffect", apply_effect)?;
 	cx.export_function("clearEffects", clear_effects)?;
 	cx.export_function("setDarkMode", set_dark_mode)?;
