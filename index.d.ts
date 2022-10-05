@@ -16,7 +16,8 @@
 
 import type { App, BrowserWindow } from 'electron';
 
-type ValidEffect = 'mica' | 'acrylic';
+type AcrylicEffect = 'mica' | 'acrylic';
+type ColourableEffect = 'acrylic';
 
 /**
  * Performs magic on the Electron app to get vibrancy effects to work.
@@ -53,7 +54,9 @@ export function setLightMode(window: BrowserWindow): void;
  * @throws if `window` is not a valid instance of `import('electron').BrowserWindow`, or if this version of Windows
  * does not support the desired effect
  */
-export function applyEffect(window: BrowserWindow, effect: ValidEffect): void;
+export function applyEffect(window: BrowserWindow, effect: Exclude<AcrylicEffect, ColourableEffect>): void;
+export function applyEffect(window: BrowserWindow, effect: ColourableEffect, colour?: string): void;
+export function applyEffect(window: BrowserWindow, effect: AcrylicEffect, colour?: string): void;
 
 /**
  * Clears all effects.

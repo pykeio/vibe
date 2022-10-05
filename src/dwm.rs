@@ -45,7 +45,7 @@ enum ACCENT_STATE {
 struct ACCENT_POLICY {
 	AccentState: u32,
 	AccentFlags: u32,
-	GradientColor: u32,
+	GradientColour: u32,
 	AnimationId: u32
 }
 
@@ -119,21 +119,21 @@ pub fn is_win11_22h2() -> bool {
 	v.2 >= 22621
 }
 
-unsafe fn SetWindowCompositionAttribute(hwnd: HWND, accent_state: ACCENT_STATE, color: Option<(u8, u8, u8, u8)>) {
+unsafe fn SetWindowCompositionAttribute(hwnd: HWND, accent_state: ACCENT_STATE, colour: Option<[u8; 4]>) {
 	type SetWindowCompositionAttribute = unsafe extern "system" fn(HWND, *mut WINDOWCOMPOSITIONATTRIBDATA) -> BOOL;
 	if let Some(set_window_composition_attribute) = get_function!("user32.dll", SetWindowCompositionAttribute) {
-		let mut color = color.unwrap_or_default();
+		let mut colour = colour.unwrap_or_default();
 
 		let is_acrylic = accent_state == ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND;
-		if is_acrylic && color.3 == 0 {
+		if is_acrylic && colour[3] == 0 {
 			// acrylic doesn't like to have 0 alpha
-			color.3 = 1;
+			colour[3] = 1;
 		}
 
 		let mut policy = ACCENT_POLICY {
 			AccentState: accent_state as _,
 			AccentFlags: if is_acrylic { 0 } else { 2 },
-			GradientColor: (color.0 as u32) | (color.1 as u32) << 8 | (color.2 as u32) << 16 | (color.3 as u32) << 24,
+			GradientColour: (colour[0] as u32) | (colour[1] as u32) << 8 | (colour[2] as u32) << 16 | (colour[3] as u32) << 24,
 			AnimationId: 0
 		};
 		let mut data = WINDOWCOMPOSITIONATTRIBDATA {
@@ -195,7 +195,7 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 	Ok(())
 }
 
-pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
+pub fn apply_acrylic(hwnd: HWND, colour: Option<[u8; 4]>) -> Result<(), VibeError> {
 	if is_win11_22h2() {
 		unsafe {
 			fix_client_area(hwnd);
@@ -203,7 +203,7 @@ pub fn apply_acrylic(hwnd: HWND) -> Result<(), VibeError> {
 		}
 	} else if is_win10_1809() || is_win11() {
 		unsafe {
-			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, Some((40, 40, 40, 0)));
+			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, Some(colour.unwrap_or([40, 40, 40, 0])));
 		}
 	} else {
 		return Err(VibeError::UnsupportedPlatformVersion("\"apply_acrylic()\" is only available on Windows 10 v1809+ or Windows 11"));

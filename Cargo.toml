@@ -21,6 +21,7 @@ panic = "abort"
 [dependencies]
 windows-sys = { version = "0.42", features = [ "Win32_Foundation", "Win32_System_LibraryLoader", "Win32_System_SystemInformation", "Win32_UI_Controls", "Win32_Graphics_Dwm" ] }
 lazy_static = "1.4"
+csscolorparser = { version = "0.6", default-features = false }
 
 [dependencies.neon]
 version = "0.10"

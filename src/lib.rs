@@ -73,6 +73,7 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
 		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
 	let effect = cx.argument::<JsString>(1)?.value(&mut cx);
+	let colour = cx.argument_opt(2);
 
 	let mut state = VIBE_STATE.lock().unwrap();
 	match *state {
@@ -87,7 +88,16 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	};
 
 	match effect.as_str() {
-		"acrylic" => match dwm::apply_acrylic(hwnd) {
+		"acrylic" => match dwm::apply_acrylic(
+			hwnd,
+			match colour {
+				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
+					Ok(colour) => Some(colour.to_rgba8()),
+					Err(_) => None
+				},
+				None => None
+			}
+		) {
 			Ok(_) => {
 				*state = VibeState::Acrylic;
 				Ok(cx.undefined())

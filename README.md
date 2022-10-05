@@ -37,7 +37,7 @@ app.whenReady().then(() => {
 
         // Recommendation: Wait to show the window to avoid an ugly flash of non-acrylic-ized content.
         show: false,
-        // Recommendation: Hide the menu bar, as the color of the bar will be solid and will look janky.
+        // Recommendation: Hide the menu bar, as the colour of the bar will be solid and will look janky.
         autoHideMenuBar: true
     });
 
@@ -46,11 +46,18 @@ app.whenReady().then(() => {
     vibe.applyEffect(mainWindow, 'acrylic');
 
     // To disable effects, run `clearEffects`.
-    // The background color of the window will be black, so you should reset the window's background color here and/or send a message to the renderer to update the CSS.
+    // The background colour of the window will be black, so you should reset the window's background colour here and/or send a message to the renderer to update the CSS.
     vibe.clearEffects(mainWindow);
     mainWindow.setBackgroundColor('#ffffff');
 });
 ```
+
+The `acrylic` effect for Windows 10 and below can also have a 'tint' applied to it:
+```js
+vibe.applyEffect(mainWindow, 'acrylic', '#AA80FF40');
+```
+
+**NOTE**: The Windows 11 22H2 'Fluent' Acrylic effect cannot be tinted and will simply follow the window/system theme (see below). You can use `vibe.platform.isWin11_22H2()` to detect if the system is Windows 11 22H2 or greater and style your app appropriately.
 
 Additionally, you can use Electron's `nativeTheme` module to force the theme of the acrylic effects:
 ```js
