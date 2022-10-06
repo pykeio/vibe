@@ -1,0 +1,49 @@
+name: Lint & Format
+on:
+  push:
+    paths:
+      - '.github/workflows/lint-and-format.yml'
+      - 'src/**/*.rs'
+      - 'rustfmt.toml'
+  pull_request:
+    paths:
+      - '.github/workflows/lint-and-format.yml'
+      - 'src/**/*.rs'
+      - 'rustfmt.toml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  RUST_BACKTRACE: 1
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+jobs:
+  check_fmt:
+    name: rustfmt check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+  check_clippy:
+    name: clippy check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: clippy
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
