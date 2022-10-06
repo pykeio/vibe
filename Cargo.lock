@@ -140,7 +140,7 @@ checksum = "dcc811dc4066ac62f84f11307873c4850cb653bfa9b1719cee2bd2204a4bc5dd"
 
 [[package]]
 name = "vibe"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "csscolorparser",
  "lazy_static",
