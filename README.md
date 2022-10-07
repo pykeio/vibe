@@ -9,7 +9,7 @@
 `vibe` is a library for acrylic/vibrancy effects for Electron on Windows. Any Electron version compatible with N-API v6 (over v11.0.0) is supported.
 
 ## Requirements
-A recent version of the [Rust](https://rust-lang.org/) toolchain (>=1.58) is required. You can install it via [rustup](https://rustup.rs/).
+A recent version of the [Rust](https://rust-lang.org/) toolchain (>=1.56.1) is required. You can install it via [rustup](https://rustup.rs/).
 
 If you don't plan on doing Rust development, you may choose to install the minimal profile in `rustup` for a lighter installation.
 
