@@ -21,7 +21,9 @@ use neon::prelude::*;
 pub enum VibeState {
 	Uninitialized,
 	Initialized,
+	#[cfg(target_os = "windows")]
 	Acrylic,
+	#[cfg(target_os = "windows")]
 	Mica
 }
 
@@ -41,7 +43,32 @@ impl ToString for VibeError {
 	}
 }
 
-pub mod dwm;
+#[cfg(target_os = "windows")]
+pub mod dwm_win32;
+
+#[cfg(target_os = "windows")]
+fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<windows_sys::Win32::Foundation::HWND> {
+	let browser_window = cx.argument::<JsObject>(0)?;
+	let get_native_window_handle: Handle<JsFunction> = browser_window.get(cx, "getNativeWindowHandle")?;
+	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(cx, browser_window, [])?.downcast_or_throw(cx)?;
+	let read_int32_le: Handle<JsFunction> = native_window_handle.get(cx, "readInt32LE")?;
+	Ok(read_int32_le
+		.call(cx, native_window_handle, [])?
+		.downcast_or_throw::<JsNumber, FunctionContext>(cx)?
+		.value(cx) as _)
+}
+
+#[cfg(target_os = "linux")]
+fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<u32> {
+	let browser_window = cx.argument::<JsObject>(0)?;
+	let get_native_window_handle: Handle<JsFunction> = browser_window.get(cx, "getNativeWindowHandle")?;
+	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(cx, browser_window, [])?.downcast_or_throw(cx)?;
+	let read_uint32_le: Handle<JsFunction> = native_window_handle.get(cx, "readUInt32LE")?;
+	Ok(read_uint32_le
+		.call(cx, native_window_handle, [])?
+		.downcast_or_throw::<JsNumber, FunctionContext>(cx)?
+		.value(cx) as _)
+}
 
 lazy_static! {
 	static ref VIBE_STATE: Mutex<VibeState> = Mutex::new(VibeState::Uninitialized);
@@ -64,14 +91,7 @@ pub fn setup(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 }
 
 pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	let browser_window = cx.argument::<JsObject>(0)?;
-	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
-	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
-	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
-	let hwnd = read_int32_le
-		.call(&mut cx, native_window_handle, [])?
-		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
-		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
+	let handle = get_native_window_handle(&mut cx)?;
 	let effect = cx.argument::<JsString>(1)?.value(&mut cx);
 	let colour = cx.argument_opt(2);
 
@@ -79,17 +99,20 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	match *state {
 		VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
 		VibeState::Initialized => (),
+		#[cfg(target_os = "windows")]
 		VibeState::Mica => {
-			let _ = dwm::clear_mica(hwnd);
+			let _ = dwm_win32::clear_mica(handle);
 		}
+		#[cfg(target_os = "windows")]
 		VibeState::Acrylic => {
-			let _ = dwm::clear_acrylic(hwnd);
+			let _ = dwm_win32::clear_acrylic(handle);
 		}
 	};
 
 	match effect.as_str() {
-		"acrylic" => match dwm::apply_acrylic(
-			hwnd,
+		#[cfg(target_os = "windows")]
+		"acrylic" => match dwm_win32::apply_acrylic(
+			handle,
 			match colour {
 				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
 					Ok(colour) => Some(colour.to_rgba8()),
@@ -104,7 +127,8 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			}
 			Err(e) => cx.throw_error(e.to_string())?
 		},
-		"mica" => match dwm::apply_mica(hwnd) {
+		#[cfg(target_os = "windows")]
+		"mica" => match dwm_win32::apply_mica(handle) {
 			Ok(_) => {
 				*state = VibeState::Mica;
 				Ok(cx.undefined())
@@ -116,24 +140,19 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 }
 
 pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	let browser_window = cx.argument::<JsObject>(0)?;
-	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
-	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
-	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
-	let hwnd = read_int32_le
-		.call(&mut cx, native_window_handle, [])?
-		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
-		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
+	let handle = get_native_window_handle(&mut cx)?;
 
 	let mut state = VIBE_STATE.lock().unwrap();
 	match *state {
 		VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
 		VibeState::Initialized => (),
+		#[cfg(target_os = "windows")]
 		VibeState::Mica => {
-			let _ = dwm::clear_mica(hwnd);
+			let _ = dwm_win32::clear_mica(handle);
 		}
+		#[cfg(target_os = "windows")]
 		VibeState::Acrylic => {
-			let _ = dwm::clear_acrylic(hwnd);
+			let _ = dwm_win32::clear_acrylic(handle);
 		}
 	};
 
@@ -143,30 +162,16 @@ pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 }
 
 pub fn set_dark_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	let browser_window = cx.argument::<JsObject>(0)?;
-	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
-	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
-	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
-	let hwnd = read_int32_le
-		.call(&mut cx, native_window_handle, [])?
-		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
-		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
-
-	let _ = dwm::force_dark_theme(hwnd);
+	let handle = get_native_window_handle(&mut cx)?;
+	#[cfg(target_os = "windows")]
+	let _ = dwm_win32::force_dark_theme(handle);
 	Ok(cx.undefined())
 }
 
 pub fn set_light_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	let browser_window = cx.argument::<JsObject>(0)?;
-	let get_native_window_handle: Handle<JsFunction> = browser_window.get(&mut cx, "getNativeWindowHandle")?;
-	let native_window_handle: Handle<JsObject> = get_native_window_handle.call(&mut cx, browser_window, [])?.downcast_or_throw(&mut cx)?;
-	let read_int32_le: Handle<JsFunction> = native_window_handle.get(&mut cx, "readInt32LE")?;
-	let hwnd = read_int32_le
-		.call(&mut cx, native_window_handle, [])?
-		.downcast_or_throw::<JsNumber, FunctionContext>(&mut cx)?
-		.value(&mut cx) as windows_sys::Win32::Foundation::HWND;
-
-	let _ = dwm::force_light_theme(hwnd);
+	let handle = get_native_window_handle(&mut cx)?;
+	#[cfg(target_os = "windows")]
+	let _ = dwm_win32::force_light_theme(handle);
 	Ok(cx.undefined())
 }
 
@@ -174,12 +179,15 @@ pub fn set_light_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
 	let platform = cx.empty_object();
 
-	let is_win_10_1809 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win10_1809())))?;
-	let is_win_11 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win11())))?;
-	let is_win_22h2 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm::is_win11_22h2())))?;
-	platform.set(&mut cx, "isWin10_1809", is_win_10_1809)?;
-	platform.set(&mut cx, "isWin11", is_win_11)?;
-	platform.set(&mut cx, "isWin11_22H2", is_win_22h2)?;
+	#[cfg(target_os = "windows")]
+	{
+		let is_win_10_1809 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm_win32::is_win10_1809())))?;
+		let is_win_11 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm_win32::is_win11())))?;
+		let is_win_22h2 = JsFunction::new(&mut cx, |mut cx: FunctionContext| Ok(cx.boolean(dwm_win32::is_win11_22h2())))?;
+		platform.set(&mut cx, "isWin10_1809", is_win_10_1809)?;
+		platform.set(&mut cx, "isWin11", is_win_11)?;
+		platform.set(&mut cx, "isWin11_22H2", is_win_22h2)?;
+	}
 
 	cx.export_value("platform", platform)?;
 

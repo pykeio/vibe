@@ -23,9 +23,10 @@
 	"homepage": "https://github.com/pykeio/vibe#readme",
 	"scripts": {
 		"build": "cargo-cp-artifact -nc index.node -- cargo build --message-format=json-render-diagnostics",
-		"build-debug": "npm run build --",
-		"build-release": "npm run build -- --release && cargo clean",
-		"install": "npm run build-release",
+		"build:debug": "npm run build --",
+		"build:release": "npm run build -- --release",
+		"build:windows-i686": "npm run build -- --release --target=i686-pc-windows-msvc",
+		"install": "npm run build:release && cargo clean",
 		"test": "cargo test"
 	},
 	"devDependencies": {
