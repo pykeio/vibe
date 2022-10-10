@@ -17,7 +17,7 @@ use std::sync::Mutex;
 use lazy_static::lazy_static;
 use neon::prelude::*;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub enum VibeState {
 	Uninitialized,
 	Initialized,
