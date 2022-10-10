@@ -29,7 +29,7 @@
 		"install": "npm run build:release && cargo clean",
 		"test": "cargo test"
 	},
-	"devDependencies": {
+	"dependencies": {
 		"cargo-cp-artifact": "^0.1.6"
 	},
 	"peerDependencies": {
