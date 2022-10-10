@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   cargo-cp-artifact: ^0.1.6
 
-devDependencies:
+dependencies:
   cargo-cp-artifact: 0.1.6
 
 packages:
@@ -11,4 +11,4 @@ packages:
   /cargo-cp-artifact/0.1.6:
     resolution: {integrity: sha512-CQw0doK/aaF7j041666XzuilHxqMxaKkn+I5vmBsd8SAwS0cO5CqVEVp0xJwOKstyqWZ6WK4Ww3O6p26x/Goyg==}
     hasBin: true
-    dev: true
+    dev: false
