@@ -71,6 +71,10 @@ vibe.setDarkMode(mainWindow);
 vibe.setLightMode(mainWindow);
 ```
 
+**Need help?** Visit the `#vibe-support` channel in the pyke Discord server:
+
+<a href="https://discord.gg/BAkXJ6VjCz"><img src="https://invidget.switchblade.xyz/BAkXJ6VjCz"></a>
+
 ## Thanks to:
 - [**Tauri**](https://github.com/tauri-apps)'s [`window-vibrancy`](https://github.com/tauri-apps/window-vibrancy) package, which vibe borrows some code from.
 - [**@alexmercerind**](https://github.com/alexmercerind) for discovering the `DwmExtendFrameIntoClientArea` hack
