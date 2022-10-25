@@ -32,16 +32,16 @@ pub enum VibeState {
 }
 
 pub enum VibeError {
-	UnsupportedPlatformVersion(&'static str),
-	UnsupportedEffect(String),
+	UnsupportedPlatform(&'static str),
+	UnknownEffect(String),
 	Uninitialized
 }
 
 impl ToString for VibeError {
 	fn to_string(&self) -> String {
 		match self {
-			Self::UnsupportedPlatformVersion(msg) => format!("Unsupported platform version: {}", msg),
-			Self::UnsupportedEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
+			Self::UnsupportedPlatform(msg) => format!("Unsupported platform: {}", msg),
+			Self::UnknownEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
 			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned()
 		}
 	}
@@ -183,7 +183,7 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			}
 			Err(e) => cx.throw_error(e.to_string())?
 		},
-		_ => cx.throw_type_error(VibeError::UnsupportedEffect(effect).to_string())
+		_ => cx.throw_type_error(VibeError::UnknownEffect(effect).to_string())
 	}
 }
 

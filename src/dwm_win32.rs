@@ -57,13 +57,11 @@ struct WINDOWCOMPOSITIONATTRIBDATA {
 	cbData: usize
 }
 
-#[allow(unused)]
 #[repr(C)]
 enum DWM_SYSTEMBACKDROP_TYPE {
 	DWMSBT_DISABLE = 1,
 	DWMSBT_MAINWINDOW = 2,      // Mica
-	DWMSBT_TRANSIENTWINDOW = 3, // Acrylic
-	DWMSBT_TABBEDWINDOW = 4     // Tabbed Mica
+	DWMSBT_TRANSIENTWINDOW = 3  // Acrylic
 }
 
 fn get_function_impl(library: &str, function: &str) -> Option<FARPROC> {
@@ -182,7 +180,7 @@ pub fn force_dark_theme(hwnd: HWND) -> Result<(), VibeError> {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &1 as *const _ as _, 4);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"force_dark_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
+		return Err(VibeError::UnsupportedPlatform("\"force_dark_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
 	}
 	Ok(())
 }
@@ -197,7 +195,7 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 			DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE - 1, &0 as *const _ as _, 4);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"force_light_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
+		return Err(VibeError::UnsupportedPlatform("\"force_light_theme()\" is only available on Windows 10 v1809+ or Windows 11"));
 	}
 	Ok(())
 }
@@ -210,10 +208,18 @@ pub fn apply_acrylic(hwnd: HWND, unified: bool, acrylic_blurbehind: bool, colour
 		}
 	} else if is_win7() {
 		unsafe {
-			SetWindowCompositionAttribute(hwnd, if acrylic_blurbehind { ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND } else { ACCENT_STATE::ACCENT_ENABLE_BLURBEHIND }, Some(colour.unwrap_or([40, 40, 40, 0])));
+			SetWindowCompositionAttribute(
+				hwnd,
+				if acrylic_blurbehind {
+					ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND
+				} else {
+					ACCENT_STATE::ACCENT_ENABLE_BLURBEHIND
+				},
+				Some(colour.unwrap_or([40, 40, 40, 0]))
+			);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"apply_acrylic()\" is only available on Windows 7+"));
+		return Err(VibeError::UnsupportedPlatform("\"apply_acrylic()\" is only available on Windows 7+"));
 	}
 	Ok(())
 }
@@ -229,7 +235,7 @@ pub fn clear_acrylic(hwnd: HWND, unified: bool) -> Result<(), VibeError> {
 			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_DISABLED, None);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"clear_acrylic()\" is only available on Windows 7+"));
+		return Err(VibeError::UnsupportedPlatform("\"clear_acrylic()\" is only available on Windows 7+"));
 	}
 	Ok(())
 }
@@ -246,7 +252,7 @@ pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
 			DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, &1 as *const _ as _, 4);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"apply_mica()\" is only available on Windows 11"));
+		return Err(VibeError::UnsupportedPlatform("\"apply_mica()\" is only available on Windows 11"));
 	}
 	Ok(())
 }
@@ -263,7 +269,7 @@ pub fn clear_mica(hwnd: HWND) -> Result<(), VibeError> {
 			DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, &0 as *const _ as _, 4);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"clear_mica()\" is only available on Windows 11"));
+		return Err(VibeError::UnsupportedPlatform("\"clear_mica()\" is only available on Windows 11"));
 	}
 	Ok(())
 }
