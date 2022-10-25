@@ -38,6 +38,7 @@ const DWMWA_SYSTEMBACKDROP_TYPE: DWMWINDOWATTRIBUTE = 38i32;
 #[repr(C)]
 enum ACCENT_STATE {
 	ACCENT_DISABLED = 0,
+	ACCENT_ENABLE_BLURBEHIND = 3,
 	ACCENT_ENABLE_ACRYLICBLURBEHIND = 4
 }
 
@@ -99,6 +100,12 @@ fn get_windows_ver() -> Option<(u32, u32, u32)> {
 		let status = (rtl_get_version)(&mut vi as _);
 		if status >= 0 { Some((vi.dwMajorVersion, vi.dwMinorVersion, vi.dwBuildNumber)) } else { None }
 	}
+}
+
+#[inline]
+pub fn is_win7() -> bool {
+	let v = get_windows_ver().unwrap_or_default();
+	v.0 > 6 || (v.0 == 6 && v.1 == 1)
 }
 
 #[inline]
@@ -195,34 +202,34 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 	Ok(())
 }
 
-pub fn apply_acrylic(hwnd: HWND, colour: Option<[u8; 4]>) -> Result<(), VibeError> {
-	if is_win11_22h2() {
+pub fn apply_acrylic(hwnd: HWND, unified: bool, acrylic_blurbehind: bool, colour: Option<[u8; 4]>) -> Result<(), VibeError> {
+	if !unified && is_win11_22h2() {
 		unsafe {
 			fix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_TRANSIENTWINDOW as *const _ as _, 4);
 		}
-	} else if is_win10_1809() || is_win11() {
+	} else if is_win7() {
 		unsafe {
-			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND, Some(colour.unwrap_or([40, 40, 40, 0])));
+			SetWindowCompositionAttribute(hwnd, if acrylic_blurbehind { ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND } else { ACCENT_STATE::ACCENT_ENABLE_BLURBEHIND }, Some(colour.unwrap_or([40, 40, 40, 0])));
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"apply_acrylic()\" is only available on Windows 10 v1809+ or Windows 11"));
+		return Err(VibeError::UnsupportedPlatformVersion("\"apply_acrylic()\" is only available on Windows 7+"));
 	}
 	Ok(())
 }
 
-pub fn clear_acrylic(hwnd: HWND) -> Result<(), VibeError> {
-	if is_win11_22h2() {
+pub fn clear_acrylic(hwnd: HWND, unified: bool) -> Result<(), VibeError> {
+	if !unified && is_win11_22h2() {
 		unsafe {
 			unfix_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
-	} else if is_win10_1809() || is_win11() {
+	} else if is_win7() {
 		unsafe {
 			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_DISABLED, None);
 		}
 	} else {
-		return Err(VibeError::UnsupportedPlatformVersion("\"clear_acrylic()\" is only available on Windows 10 v1809+ or Windows 11"));
+		return Err(VibeError::UnsupportedPlatformVersion("\"clear_acrylic()\" is only available on Windows 7+"));
 	}
 	Ok(())
 }

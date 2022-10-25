@@ -16,8 +16,8 @@
 
 import type { App, BrowserWindow } from 'electron';
 
-type AcrylicEffect = 'mica' | 'acrylic';
-type ColourableEffect = 'acrylic';
+type AcrylicEffect = 'mica' | 'acrylic' | 'unified-acrylic' | 'blurbehind';
+type ColourableEffect = 'acrylic' | 'unified-acrylic' | 'blurbehind';
 
 /**
  * Performs magic on the Electron app to get vibrancy effects to work.

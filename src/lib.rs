@@ -24,6 +24,10 @@ pub enum VibeState {
 	#[cfg(target_os = "windows")]
 	Acrylic,
 	#[cfg(target_os = "windows")]
+	UnifiedAcrylic,
+	#[cfg(target_os = "windows")]
+	Blurbehind,
+	#[cfg(target_os = "windows")]
 	Mica
 }
 
@@ -104,8 +108,12 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			let _ = dwm_win32::clear_mica(handle);
 		}
 		#[cfg(target_os = "windows")]
+		VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
+			let _ = dwm_win32::clear_acrylic(handle, true);
+		}
+		#[cfg(target_os = "windows")]
 		VibeState::Acrylic => {
-			let _ = dwm_win32::clear_acrylic(handle);
+			let _ = dwm_win32::clear_acrylic(handle, false);
 		}
 	};
 
@@ -113,6 +121,8 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 		#[cfg(target_os = "windows")]
 		"acrylic" => match dwm_win32::apply_acrylic(
 			handle,
+			false,
+			true,
 			match colour {
 				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
 					Ok(colour) => Some(colour.to_rgba8()),
@@ -123,6 +133,44 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 		) {
 			Ok(_) => {
 				*state = VibeState::Acrylic;
+				Ok(cx.undefined())
+			}
+			Err(e) => cx.throw_error(e.to_string())?
+		},
+		#[cfg(target_os = "windows")]
+		"unified-acrylic" => match dwm_win32::apply_acrylic(
+			handle,
+			true,
+			true,
+			match colour {
+				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
+					Ok(colour) => Some(colour.to_rgba8()),
+					Err(_) => None
+				},
+				None => None
+			}
+		) {
+			Ok(_) => {
+				*state = VibeState::UnifiedAcrylic;
+				Ok(cx.undefined())
+			}
+			Err(e) => cx.throw_error(e.to_string())?
+		},
+		#[cfg(target_os = "windows")]
+		"blurbehind" => match dwm_win32::apply_acrylic(
+			handle,
+			true,
+			false,
+			match colour {
+				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
+					Ok(colour) => Some(colour.to_rgba8()),
+					Err(_) => None
+				},
+				None => None
+			}
+		) {
+			Ok(_) => {
+				*state = VibeState::Blurbehind;
 				Ok(cx.undefined())
 			}
 			Err(e) => cx.throw_error(e.to_string())?
@@ -151,8 +199,12 @@ pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			let _ = dwm_win32::clear_mica(handle);
 		}
 		#[cfg(target_os = "windows")]
+		VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
+			let _ = dwm_win32::clear_acrylic(handle, true);
+		}
+		#[cfg(target_os = "windows")]
 		VibeState::Acrylic => {
-			let _ = dwm_win32::clear_acrylic(handle);
+			let _ = dwm_win32::clear_acrylic(handle, false);
 		}
 	};
 
