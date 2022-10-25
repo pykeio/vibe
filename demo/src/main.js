@@ -15,7 +15,7 @@ app.whenReady().then(() => {
 	});
 
 	// Force dark theme for demonstration purposes.
-	vibe.setDarkMode(mainWindow);
+	vibe.forceTheme(mainWindow, 'dark');
 
 	vibe.applyEffect(mainWindow, 'acrylic');
 

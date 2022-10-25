@@ -34,6 +34,7 @@ pub enum VibeState {
 pub enum VibeError {
 	UnsupportedPlatform(&'static str),
 	UnknownEffect(String),
+	UnknownTheme(String),
 	Uninitialized
 }
 
@@ -42,6 +43,7 @@ impl ToString for VibeError {
 		match self {
 			Self::UnsupportedPlatform(msg) => format!("Unsupported platform: {}", msg),
 			Self::UnknownEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
+			Self::UnknownTheme(effect) => format!("Expected `theme` to be one of ['dark', 'light']; got `{}`", effect),
 			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned()
 		}
 	}
@@ -213,18 +215,23 @@ pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	Ok(cx.undefined())
 }
 
-pub fn set_dark_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+pub fn force_theme(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	let handle = get_native_window_handle(&mut cx)?;
-	#[cfg(target_os = "windows")]
-	let _ = dwm_win32::force_dark_theme(handle);
-	Ok(cx.undefined())
-}
+	let effect = cx.argument::<JsString>(1)?.value(&mut cx);
 
-pub fn set_light_mode(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	let handle = get_native_window_handle(&mut cx)?;
-	#[cfg(target_os = "windows")]
-	let _ = dwm_win32::force_light_theme(handle);
-	Ok(cx.undefined())
+	match effect.as_str() {
+		"dark" => {
+			#[cfg(target_os = "windows")]
+			let _ = dwm_win32::force_dark_theme(handle);
+			Ok(cx.undefined())
+		}
+		"light" => {
+			#[cfg(target_os = "windows")]
+			let _ = dwm_win32::force_light_theme(handle);
+			Ok(cx.undefined())
+		}
+		_ => cx.throw_type_error(VibeError::UnknownTheme(effect).to_string())
+	}
 }
 
 #[neon::main]
@@ -245,8 +252,7 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
 
 	cx.export_function("applyEffect", apply_effect)?;
 	cx.export_function("clearEffects", clear_effects)?;
-	cx.export_function("setDarkMode", set_dark_mode)?;
-	cx.export_function("setLightMode", set_light_mode)?;
+	cx.export_function("forceTheme", force_theme)?;
 	cx.export_function("setup", setup)?;
 	Ok(())
 }

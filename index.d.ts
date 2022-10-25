@@ -32,14 +32,10 @@ type ColourableEffect = 'acrylic' | 'unified-acrylic' | 'blurbehind';
 export function setup(app: App): void;
 
 /**
- * Forces a window's acrylic effects to have a dark theme.
+ * Forces a window's acrylic effects to have the specified theme. Note that this may also change the titlebar/caption
+ * colour.
  */
-export function setDarkMode(window: BrowserWindow): void;
-
-/**
- * Forces a window's acrylic effects to have a light theme.
- */
-export function setLightMode(window: BrowserWindow): void;
+export function forceTheme(window: BrowserWindow, theme: 'dark' | 'light'): void;
 
 /**
  * Applies an acrylic effect to a window. `effect` must be one of `mica` or `acrylic`. `mica` is supported only in
