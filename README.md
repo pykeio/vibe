@@ -67,8 +67,8 @@ nativeTheme.themeSource = 'dark';
 
 or, for older versions of Electron:
 ```js
-vibe.setDarkMode(mainWindow);
-vibe.setLightMode(mainWindow);
+vibe.forceTheme(mainWindow, 'dark');
+vibe.forceTheme(mainWindow, 'light');
 ```
 
 **Need help?** Visit the `#vibe-support` channel in the pyke Discord server:

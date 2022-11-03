@@ -43,7 +43,7 @@ impl ToString for VibeError {
 		match self {
 			Self::UnsupportedPlatform(msg) => format!("Unsupported platform: {}", msg),
 			Self::UnknownEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
-			Self::UnknownTheme(effect) => format!("Expected `theme` to be one of ['dark', 'light']; got `{}`", effect),
+			Self::UnknownTheme(theme) => format!("Expected `theme` to be one of ['dark', 'light']; got `{}`", theme),
 			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned()
 		}
 	}
