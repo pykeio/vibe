@@ -76,6 +76,11 @@ fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<u32> {
 		.value(cx) as _)
 }
 
+#[cfg(not(any(target_os = "windows", target_os = "linux")))]
+fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<()> {
+	Ok(())
+}
+
 lazy_static! {
 	static ref VIBE_STATE: Mutex<VibeState> = Mutex::new(VibeState::Uninitialized);
 }
