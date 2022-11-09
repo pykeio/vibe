@@ -1,33 +1,159 @@
 <!DOCTYPE html>
 <html>
+	<head>
+		<meta charset="utf-8">
+		<title>vibe demo</title>
+		<style>
+			* {
+				font-family: 'Segoe UI', sans-serif;
+			}
 
-<head>
-	<meta charset="UTF-8">
-	<title>vibe demo</title>
-	<style>
-		html,
-		body {
-			background: transparent !important;
-		}
+			:root {
+				--easing: cubic-bezier(0, 0, 0, 1);
+			}
 
-		body {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			margin: 0;
-			width: 100vw;
-			height: 100vh;
-		}
+			html, body {
+				background: transparent !important;
+			}
 
-		img {
-			width: 60vw;
-			height: 60vh;
-		}
-	</style>
-</head>
+			body {
+				margin: 0;
+			}
 
-<body>
-	<img src="1f4ab.svg">
-</body>
+			main {
+				width: 100vw;
+				height: 100vh;
 
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-direction: column;
+			}
+
+			main > div {
+				padding: 10px;
+				max-width: 85vw;
+
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-direction: row;
+				flex-wrap: wrap;
+			}
+
+			button {
+				font-size: 14px;
+				color: black;
+				background-color: #fbfbfb;
+				padding: 10px 16px;
+				border: 1px solid #e7e7e7;
+				border-radius: 6px;
+				border-bottom-width: 0;
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+				margin: 3px 4px;
+				min-width: 65px;
+				white-space: nowrap;
+				transition: background-color 0.25s var(--easing);
+			}
+
+			button:hover {
+				background-color: #f6f6f6;
+			}
+
+			button:active {
+				background-color: #e7e7e7;
+			}
+
+			button.primary {
+				border: 1px solid #3f9fcf;
+				color: black;
+				background-color: #4cc2ff;
+			}
+
+			button.primary:hover {
+				background-color: #47b1e8;
+			}
+
+			button.primary:active {
+				color: #254453;
+				background-color: #42a1d2;
+			}
+
+			button#clear {
+				font-size: 12px;
+				margin-top: 16px;
+				padding: 7px 16px;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				body {
+					color: white;
+				}
+
+				button {
+					border: 1px solid #2D2D2D;
+					color: white;
+					background-color: #2D2D2D;
+					border-color: #2D2D2D;
+				}
+
+				button:hover {
+					background-color: #323232;
+				}
+
+				button:active {
+					background-color: #272727;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1 style='margin-top:0;font-family:"Source Code Pro","SauceCodePro NF","Courier New",Courier,monospace'>@pyke/vibe</h1>
+			<p>Press the buttons to switch between effects.</p>
+			<div>
+				<button id='mica'>Mica</button>
+				<button id='acrylic'>Acrylic</button>
+				<button id='unified-acrylic'>Unified Acrylic</button>
+				<button id='blurbehind'>Blurbehind</button>
+			</div>
+			<button id='clear'>Clear effects</button>
+		</main>
+
+		<script>
+			const { ipcRenderer } = require('electron');
+
+			const buttons = [
+				'mica',
+				'acrylic',
+				'unified-acrylic',
+				'blurbehind'
+			];
+
+			for (const id of buttons) {
+				const el = document.getElementById(id);
+				el.addEventListener('click', () => {
+					for (const otherId of buttons)
+						if (otherId !== id) {
+							const otherEl = document.getElementById(otherId);
+							if (otherEl.classList.contains('primary'))
+								otherEl.classList.remove('primary');
+						}
+
+					el.classList.add('primary');
+					ipcRenderer.send('apply', id);
+				});
+			}
+
+			document.getElementById('clear').addEventListener('click', () => {
+				for (const otherId of buttons) {
+					const otherEl = document.getElementById(otherId);
+					if (otherEl.classList.contains('primary'))
+						otherEl.classList.remove('primary');
+				}
+
+				ipcRenderer.send('clear');
+			});
+		</script>
+	</body>
 </html>

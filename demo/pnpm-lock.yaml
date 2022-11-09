@@ -5,8 +5,8 @@ specifiers:
   electron: '*'
 
 dependencies:
-  '@pyke/vibe': file:.._electron@21.0.1
-  electron: 21.0.1
+  '@pyke/vibe': file:.._electron@21.2.2
+  electron: 21.2.2
 
 packages:
 
@@ -43,24 +43,24 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 16.11.62
+      '@types/node': 16.18.3
     dev: false
 
-  /@types/node/16.11.62:
-    resolution: {integrity: sha512-K/ggecSdwAAy2NUW4WKmF4Rc03GKbsfP+k326UWgckoS+Rzd2PaWbjk76dSmqdLQvLTJAO9axiTUJ6488mFsYQ==}
+  /@types/node/16.18.3:
+    resolution: {integrity: sha512-jh6m0QUhIRcZpNv7Z/rpN+ZWXOicUUQbSoWks7Htkbb9IjFQj4kzcX/xFCkjstCj5flMsN8FiSvt+q+Tcs4Llg==}
     dev: false
 
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 16.11.62
+      '@types/node': 16.18.3
     dev: false
 
   /@types/yauzl/2.10.0:
     resolution: {integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==}
     requiresBuild: true
     dependencies:
-      '@types/node': 16.11.62
+      '@types/node': 16.18.3
     dev: false
     optional: true
 
@@ -84,6 +84,11 @@ packages:
       lowercase-keys: 2.0.0
       normalize-url: 4.5.1
       responselike: 1.0.2
+    dev: false
+
+  /cargo-cp-artifact/0.1.6:
+    resolution: {integrity: sha512-CQw0doK/aaF7j041666XzuilHxqMxaKkn+I5vmBsd8SAwS0cO5CqVEVp0xJwOKstyqWZ6WK4Ww3O6p26x/Goyg==}
+    hasBin: true
     dev: false
 
   /clone-response/1.0.3:
@@ -141,14 +146,14 @@ packages:
     resolution: {integrity: sha512-1A8za6ws41LQgv9HrE/66jyC5yuSjQ3L/KOpFtoBilsAK2iA2wuS5rTt1OCzIvtS2V7nVmedsUU+DGRcjBmOYA==}
     dev: false
 
-  /electron/21.0.1:
-    resolution: {integrity: sha512-jLVSLakd0fO2GPnW4xXQrI93R464jeFb2ISngqRP3wpwH96XqeANkuAYLAr9TVhfQMCIWnuPROBZ+NU7nuk0WA==}
+  /electron/21.2.2:
+    resolution: {integrity: sha512-Q0j1tzLTM5JRjSJVAfDSONZgdtuyruHR1pc1y2IbMYQz62pVJWVWAvcJXzpty5iRh2HKzW9+B9WVlmfWNFA8ag==}
     engines: {node: '>= 10.17.0'}
     hasBin: true
     requiresBuild: true
     dependencies:
       '@electron/get': 1.14.1
-      '@types/node': 16.11.62
+      '@types/node': 16.18.3
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -248,7 +253,7 @@ packages:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.3.7
+      semver: 7.3.8
       serialize-error: 7.0.1
     dev: false
     optional: true
@@ -479,8 +484,8 @@ packages:
     hasBin: true
     dev: false
 
-  /semver/7.3.7:
-    resolution: {integrity: sha512-QlYTucUYOews+WeEujDoEGziz4K6c47V/Bd+LjSSYcA94p+DmINdf7ncaUinThfvZyu13lN9OY1XDxt8C0Tw0g==}
+  /semver/7.3.8:
+    resolution: {integrity: sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
@@ -555,15 +560,15 @@ packages:
       fd-slicer: 1.1.0
     dev: false
 
-  file:.._electron@21.0.1:
+  file:.._electron@21.2.2:
     resolution: {directory: .., type: directory}
     id: file:..
     name: '@pyke/vibe'
-    version: 0.1.1
-    os: [win32]
+    version: 0.3.1
     requiresBuild: true
     peerDependencies:
       electron: '>=11.0'
     dependencies:
-      electron: 21.0.1
+      cargo-cp-artifact: 0.1.6
+      electron: 21.2.2
     dev: false
