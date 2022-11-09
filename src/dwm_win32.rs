@@ -16,6 +16,7 @@
 
 use std::ffi::c_void;
 
+use once_cell::sync::Lazy;
 use windows_sys::Win32::{
 	Foundation::{BOOL, FARPROC, HWND},
 	Graphics::Dwm::{DwmExtendFrameIntoClientArea, DwmSetWindowAttribute, DWMWINDOWATTRIBUTE},
@@ -33,6 +34,37 @@ type WINDOWCOMPOSITIONATTRIB = u32;
 const DWMWA_USE_IMMERSIVE_DARK_MODE: DWMWINDOWATTRIBUTE = 20i32;
 const DWMWA_MICA_EFFECT: DWMWINDOWATTRIBUTE = 1029i32;
 const DWMWA_SYSTEMBACKDROP_TYPE: DWMWINDOWATTRIBUTE = 38i32;
+
+fn get_function_impl(library: &str, function: &str) -> Option<FARPROC> {
+	assert_eq!(library.chars().last(), Some('\0'));
+	assert_eq!(function.chars().last(), Some('\0'));
+
+	let module = unsafe { LoadLibraryA(library.as_ptr()) };
+	if module == 0 {
+		return None;
+	}
+	Some(unsafe { GetProcAddress(module, function.as_ptr()) })
+}
+
+macro_rules! get_function {
+	($lib:expr, $func:ident, $type:ty) => {
+		get_function_impl(concat!($lib, '\0'), concat!(stringify!($func), '\0')).map(|f| unsafe { std::mem::transmute::<FARPROC, $type>(f) })
+	};
+}
+
+static WVER: Lazy<(u32, u32, u32)> = Lazy::new(|| {
+	let RtlGetVersion = get_function!("ntdll.dll", RtlGetVersion, unsafe extern "system" fn(*mut OSVERSIONINFOW) -> i32).unwrap();
+	let mut vi = OSVERSIONINFOW {
+		dwOSVersionInfoSize: 0,
+		dwMajorVersion: 0,
+		dwMinorVersion: 0,
+		dwBuildNumber: 0,
+		dwPlatformId: 0,
+		szCSDVersion: [0; 128]
+	};
+	unsafe { (RtlGetVersion)(&mut vi as _) };
+	(vi.dwMajorVersion, vi.dwMinorVersion, vi.dwBuildNumber)
+});
 
 #[derive(PartialEq, Eq)]
 #[repr(C)]
@@ -64,69 +96,30 @@ enum DWM_SYSTEMBACKDROP_TYPE {
 	DWMSBT_TRANSIENTWINDOW = 3  // Acrylic
 }
 
-fn get_function_impl(library: &str, function: &str) -> Option<FARPROC> {
-	assert_eq!(library.chars().last(), Some('\0'));
-	assert_eq!(function.chars().last(), Some('\0'));
-
-	let module = unsafe { LoadLibraryA(library.as_ptr()) };
-	if module == 0 {
-		return None;
-	}
-	Some(unsafe { GetProcAddress(module, function.as_ptr()) })
-}
-
-macro_rules! get_function {
-	($lib:expr, $func:ident) => {
-		get_function_impl(concat!($lib, '\0'), concat!(stringify!($func), '\0'))
-			.map(|f| unsafe { std::mem::transmute::<::windows_sys::Win32::Foundation::FARPROC, $func>(f) })
-	};
-}
-
-fn get_windows_ver() -> Option<(u32, u32, u32)> {
-	type RtlGetVersion = unsafe extern "system" fn(*mut OSVERSIONINFOW) -> i32;
-	let rtl_get_version = get_function!("ntdll.dll", RtlGetVersion)?;
-	unsafe {
-		let mut vi = OSVERSIONINFOW {
-			dwOSVersionInfoSize: 0,
-			dwMajorVersion: 0,
-			dwMinorVersion: 0,
-			dwBuildNumber: 0,
-			dwPlatformId: 0,
-			szCSDVersion: [0; 128]
-		};
-
-		let status = (rtl_get_version)(&mut vi as _);
-		if status >= 0 { Some((vi.dwMajorVersion, vi.dwMinorVersion, vi.dwBuildNumber)) } else { None }
-	}
-}
-
 #[inline]
 pub fn is_win7() -> bool {
-	let v = get_windows_ver().unwrap_or_default();
-	v.0 > 6 || (v.0 == 6 && v.1 == 1)
+	WVER.0 > 6 || (WVER.0 == 6 && WVER.1 == 1)
 }
 
 #[inline]
 pub fn is_win10_1809() -> bool {
-	let v = get_windows_ver().unwrap_or_default();
-	v.2 >= 17763 && v.2 < 22000
+	WVER.2 >= 17763 && WVER.2 < 22000
 }
 
 #[inline]
 pub fn is_win11() -> bool {
-	let v = get_windows_ver().unwrap_or_default();
-	v.2 >= 22000
+	WVER.2 >= 22000
 }
 
 #[inline]
 pub fn is_win11_22h2() -> bool {
-	let v = get_windows_ver().unwrap_or_default();
-	v.2 >= 22621
+	WVER.2 >= 22621
 }
 
-unsafe fn SetWindowCompositionAttribute(hwnd: HWND, accent_state: ACCENT_STATE, colour: Option<[u8; 4]>) {
-	type SetWindowCompositionAttribute = unsafe extern "system" fn(HWND, *mut WINDOWCOMPOSITIONATTRIBDATA) -> BOOL;
-	if let Some(set_window_composition_attribute) = get_function!("user32.dll", SetWindowCompositionAttribute) {
+unsafe fn set_accent_policy(hwnd: HWND, accent_state: ACCENT_STATE, colour: Option<[u8; 4]>) {
+	if let Some(SetWindowCompositionAttribute) =
+		get_function!("user32.dll", SetWindowCompositionAttribute, unsafe extern "system" fn(HWND, *mut WINDOWCOMPOSITIONATTRIBDATA) -> BOOL)
+	{
 		let mut colour = colour.unwrap_or_default();
 
 		let is_acrylic = accent_state == ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND;
@@ -146,11 +139,11 @@ unsafe fn SetWindowCompositionAttribute(hwnd: HWND, accent_state: ACCENT_STATE, 
 			pvData: &mut policy as *mut _ as _,
 			cbData: std::mem::size_of_val(&policy)
 		};
-		set_window_composition_attribute(hwnd, &mut data as *mut _ as _);
+		SetWindowCompositionAttribute(hwnd, &mut data as *mut _ as _);
 	}
 }
 
-unsafe fn fix_client_area(hwnd: HWND) {
+unsafe fn extend_client_area(hwnd: HWND) {
 	let margins = MARGINS {
 		cxLeftWidth: -1,
 		cxRightWidth: -1,
@@ -160,7 +153,7 @@ unsafe fn fix_client_area(hwnd: HWND) {
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
 }
 
-unsafe fn unfix_client_area(hwnd: HWND) {
+unsafe fn reset_client_area(hwnd: HWND) {
 	let margins = MARGINS {
 		cxLeftWidth: 0,
 		cxRightWidth: 0,
@@ -203,12 +196,12 @@ pub fn force_light_theme(hwnd: HWND) -> Result<(), VibeError> {
 pub fn apply_acrylic(hwnd: HWND, unified: bool, acrylic_blurbehind: bool, colour: Option<[u8; 4]>) -> Result<(), VibeError> {
 	if !unified && is_win11_22h2() {
 		unsafe {
-			fix_client_area(hwnd);
+			extend_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_TRANSIENTWINDOW as *const _ as _, 4);
 		}
 	} else if is_win7() {
 		unsafe {
-			SetWindowCompositionAttribute(
+			set_accent_policy(
 				hwnd,
 				if acrylic_blurbehind {
 					ACCENT_STATE::ACCENT_ENABLE_ACRYLICBLURBEHIND
@@ -227,12 +220,12 @@ pub fn apply_acrylic(hwnd: HWND, unified: bool, acrylic_blurbehind: bool, colour
 pub fn clear_acrylic(hwnd: HWND, unified: bool) -> Result<(), VibeError> {
 	if !unified && is_win11_22h2() {
 		unsafe {
-			unfix_client_area(hwnd);
+			reset_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
 	} else if is_win7() {
 		unsafe {
-			SetWindowCompositionAttribute(hwnd, ACCENT_STATE::ACCENT_DISABLED, None);
+			set_accent_policy(hwnd, ACCENT_STATE::ACCENT_DISABLED, None);
 		}
 	} else {
 		return Err(VibeError::UnsupportedPlatform("\"clear_acrylic()\" is only available on Windows 7+"));
@@ -243,12 +236,12 @@ pub fn clear_acrylic(hwnd: HWND, unified: bool) -> Result<(), VibeError> {
 pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
 	if is_win11_22h2() {
 		unsafe {
-			fix_client_area(hwnd);
+			extend_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_MAINWINDOW as *const _ as _, 4);
 		}
 	} else if is_win11() {
 		unsafe {
-			fix_client_area(hwnd);
+			extend_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, &1 as *const _ as _, 4);
 		}
 	} else {
@@ -260,12 +253,12 @@ pub fn apply_mica(hwnd: HWND) -> Result<(), VibeError> {
 pub fn clear_mica(hwnd: HWND) -> Result<(), VibeError> {
 	if is_win11_22h2() {
 		unsafe {
-			unfix_client_area(hwnd);
+			reset_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, &DWM_SYSTEMBACKDROP_TYPE::DWMSBT_DISABLE as *const _ as _, 4);
 		}
 	} else if is_win11() {
 		unsafe {
-			unfix_client_area(hwnd);
+			reset_client_area(hwnd);
 			DwmSetWindowAttribute(hwnd, DWMWA_MICA_EFFECT, &0 as *const _ as _, 4);
 		}
 	} else {

@@ -14,8 +14,8 @@
 
 use std::sync::Mutex;
 
-use lazy_static::lazy_static;
 use neon::prelude::*;
+use once_cell::sync::Lazy;
 
 #[derive(PartialEq, Eq)]
 pub enum VibeState {
@@ -30,6 +30,8 @@ pub enum VibeState {
 	#[cfg(target_os = "windows")]
 	Mica
 }
+
+static VIBE_STATE: Lazy<Mutex<VibeState>> = Lazy::new(|| Mutex::new(VibeState::Uninitialized));
 
 pub enum VibeError {
 	UnsupportedPlatform(&'static str),
@@ -79,10 +81,6 @@ fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<u32> {
 #[cfg(not(any(target_os = "windows", target_os = "linux")))]
 fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<()> {
 	Ok(())
-}
-
-lazy_static! {
-	static ref VIBE_STATE: Mutex<VibeState> = Mutex::new(VibeState::Uninitialized);
 }
 
 pub fn setup(mut cx: FunctionContext) -> JsResult<JsUndefined> {
