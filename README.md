@@ -6,7 +6,7 @@
     <img src="docs/gallery.png" width=500>
 </div>
 
-`vibe` is a library for acrylic/vibrancy effects for Electron on Windows. Any Electron version compatible with N-API v6 (over v11.0.0) is supported.
+`vibe` is a library for acrylic/vibrancy effects for Electron on Windows. Any Electron version compatible with N-API v6 (Electron v11+) is supported.
 
 ## Requirements
 A recent version of the [Rust](https://rust-lang.org/) toolchain (>=1.56.1) is required. You can install it via [rustup](https://rustup.rs/).
@@ -17,15 +17,15 @@ For end users, the Acrylic effect is supported in Windows 10 builds later than b
 
 ## Usage
 There are 3 important points you must keep in mind when using `vibe`:
-- **`vibe` must do some trickery on the Electron `app` object before Electron loads in order for effects to work**, so don't forget to run `vibe.setup(app)` **before** your `app.whenReady()` callback.
-- **Do not touch the frame**. Windows gets fussy about frames when you attempt to use acrylic effects. `titleBarStyle` must always be set to `default` and `frame` must always be set to `true`. While there is a way to have titlebar-less framed Mica windows, the method does not work with the way Electron creates its windows, and would unfortunately require changes in Electron's internals.
-- **Both `html` and `body` need to be transparent in CSS**. It's a common mistake to only set `html` or `body` to have `background: transparent`, but they both need it. Additionally, you must set the Electron window's `backgroundColor` to `#00000000` to trick Electron into making a transparent window. **Do not set `transparent` to `true`**, as this will disable the frame and effects will break.
+- **`vibe` must do some trickery on the Electron `app` object before Electron loads in order for effects to work**, so don't forget to run `vibe.setup(app)` **before** `app.whenReady()`.
+- **Keep the default frame**. Windows gets fussy about frames when you attempt to use acrylic effects. `titleBarStyle` must always be set to `default` and `frame` must always be set to `true`. While there [is a way to have titlebar-less framed Mica windows](https://github.com/pykeio/millennium/commit/0964cb3), it does not work with Electron, and would unfortunately require changes in Electron's internals.
+- **Both `html` and `body` need to be transparent in CSS**. It's a common mistake to only make either `html` or `body` have `background: transparent`, but *both* of them need to be transparent. Additionally, you must set the Electron window's `backgroundColor` to `#00000000` to trick Electron into making a framed transparent window. **Do not set `transparent` to `true`**, as this will disable the frame and effects will break.
 
 ```js
 const { app, BrowserWindow, nativeTheme } = require('electron');
 const vibe = require('@pyke/vibe');
 
-// Very important - let vibe perform its dark rituals
+// Very important - let vibe perform its magic before the app is ready
 vibe.setup(app);
 
 app.whenReady().then(() => {
@@ -71,7 +71,7 @@ vibe.forceTheme(mainWindow, 'dark');
 vibe.forceTheme(mainWindow, 'light');
 ```
 
-**Need help?** Visit the `#vibe-support` channel in the pyke Discord server:
+**Need help?** Visit the [`#💬｜vibe-support`](https://discord.com/channels/1029216970027049072/1030139823136190495) channel in the pyke Discord server:
 
 <a href="https://discord.gg/BAkXJ6VjCz"><img src="https://invidget.switchblade.xyz/BAkXJ6VjCz"></a>
 
