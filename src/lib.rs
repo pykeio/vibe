@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 use neon::prelude::*;
 use once_cell::sync::Lazy;
@@ -31,7 +31,7 @@ pub enum VibeState {
 	Mica
 }
 
-static VIBE_STATE: Lazy<Mutex<VibeState>> = Lazy::new(|| Mutex::new(VibeState::Uninitialized));
+static VIBE_STATE: Lazy<RwLock<VibeState>> = Lazy::new(|| RwLock::new(VibeState::Uninitialized));
 
 pub enum VibeError {
 	UnsupportedPlatform(&'static str),
@@ -84,7 +84,7 @@ fn get_native_window_handle(cx: &mut FunctionContext) -> NeonResult<()> {
 }
 
 pub fn setup(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-	if *VIBE_STATE.lock().unwrap() != VibeState::Uninitialized {
+	if *VIBE_STATE.read().unwrap() != VibeState::Uninitialized {
 		return Ok(cx.undefined());
 	}
 
@@ -94,7 +94,7 @@ pub fn setup(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	let enable_transparent_visuals = cx.string("enable-transparent-visuals").as_value(&mut cx);
 	append_switch.call(&mut cx, command_line, [enable_transparent_visuals])?;
 
-	*VIBE_STATE.lock().unwrap() = VibeState::Initialized;
+	*VIBE_STATE.write().unwrap() = VibeState::Initialized;
 
 	Ok(cx.undefined())
 }
@@ -104,23 +104,27 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	let effect = cx.argument::<JsString>(1)?.value(&mut cx);
 	let colour = cx.argument_opt(2);
 
-	let mut state = VIBE_STATE.lock().unwrap();
-	match *state {
-		VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
-		VibeState::Initialized => (),
-		#[cfg(target_os = "windows")]
-		VibeState::Mica => {
-			let _ = dwm_win32::clear_mica(handle);
-		}
-		#[cfg(target_os = "windows")]
-		VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
-			let _ = dwm_win32::clear_acrylic(handle, true);
-		}
-		#[cfg(target_os = "windows")]
-		VibeState::Acrylic => {
-			let _ = dwm_win32::clear_acrylic(handle, false);
-		}
-	};
+	{
+		let state = VIBE_STATE.read().unwrap();
+		match *state {
+			VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
+			VibeState::Initialized => (),
+			#[cfg(target_os = "windows")]
+			VibeState::Mica => {
+				let _ = dwm_win32::clear_mica(handle);
+			}
+			#[cfg(target_os = "windows")]
+			VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
+				let _ = dwm_win32::clear_acrylic(handle, true);
+			}
+			#[cfg(target_os = "windows")]
+			VibeState::Acrylic => {
+				let _ = dwm_win32::clear_acrylic(handle, false);
+			}
+		};
+	}
+
+	let mut state = VIBE_STATE.write().unwrap();
 
 	match effect.as_str() {
 		#[cfg(target_os = "windows")]
@@ -195,24 +199,27 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 pub fn clear_effects(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 	let handle = get_native_window_handle(&mut cx)?;
 
-	let mut state = VIBE_STATE.lock().unwrap();
-	match *state {
-		VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
-		VibeState::Initialized => (),
-		#[cfg(target_os = "windows")]
-		VibeState::Mica => {
-			let _ = dwm_win32::clear_mica(handle);
-		}
-		#[cfg(target_os = "windows")]
-		VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
-			let _ = dwm_win32::clear_acrylic(handle, true);
-		}
-		#[cfg(target_os = "windows")]
-		VibeState::Acrylic => {
-			let _ = dwm_win32::clear_acrylic(handle, false);
-		}
-	};
+	{
+		let state = VIBE_STATE.read().unwrap();
+		match *state {
+			VibeState::Uninitialized => cx.throw_error(VibeError::Uninitialized.to_string())?,
+			VibeState::Initialized => (),
+			#[cfg(target_os = "windows")]
+			VibeState::Mica => {
+				let _ = dwm_win32::clear_mica(handle);
+			}
+			#[cfg(target_os = "windows")]
+			VibeState::UnifiedAcrylic | VibeState::Blurbehind => {
+				let _ = dwm_win32::clear_acrylic(handle, true);
+			}
+			#[cfg(target_os = "windows")]
+			VibeState::Acrylic => {
+				let _ = dwm_win32::clear_acrylic(handle, false);
+			}
+		};
+	}
 
+	let mut state = VIBE_STATE.write().unwrap();
 	*state = VibeState::Initialized;
 
 	Ok(cx.undefined())
