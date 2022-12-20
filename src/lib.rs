@@ -28,7 +28,7 @@ pub enum VibeState {
 	#[cfg(target_os = "windows")]
 	Blurbehind,
 	#[cfg(target_os = "windows")]
-	Mica
+	Mica,
 }
 
 static VIBE_STATE: Lazy<RwLock<VibeState>> = Lazy::new(|| RwLock::new(VibeState::Uninitialized));
@@ -37,7 +37,7 @@ pub enum VibeError {
 	UnsupportedPlatform(&'static str),
 	UnknownEffect(String),
 	UnknownTheme(String),
-	Uninitialized
+	Uninitialized,
 }
 
 impl ToString for VibeError {
@@ -46,7 +46,7 @@ impl ToString for VibeError {
 			Self::UnsupportedPlatform(msg) => format!("Unsupported platform: {}", msg),
 			Self::UnknownEffect(effect) => format!("Expected `effect` to be one of ['mica', 'acrylic', 'unified-acrylic', 'blurbehind']; got `{}`", effect),
 			Self::UnknownTheme(theme) => format!("Expected `theme` to be one of ['dark', 'light']; got `{}`", theme),
-			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned()
+			Self::Uninitialized => "`vibe` was not setup before calling `applyEffect`!".to_owned(),
 		}
 	}
 }
@@ -135,16 +135,16 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			match colour {
 				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
 					Ok(colour) => Some(colour.to_rgba8()),
-					Err(_) => None
+					Err(_) => None,
 				},
-				None => None
-			}
+				None => None,
+			},
 		) {
 			Ok(_) => {
 				*state = VibeState::Acrylic;
 				Ok(cx.undefined())
 			}
-			Err(e) => cx.throw_error(e.to_string())?
+			Err(e) => cx.throw_error(e.to_string())?,
 		},
 		#[cfg(target_os = "windows")]
 		"unified-acrylic" => match dwm_win32::apply_acrylic(
@@ -154,16 +154,16 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			match colour {
 				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
 					Ok(colour) => Some(colour.to_rgba8()),
-					Err(_) => None
+					Err(_) => None,
 				},
-				None => None
-			}
+				None => None,
+			},
 		) {
 			Ok(_) => {
 				*state = VibeState::UnifiedAcrylic;
 				Ok(cx.undefined())
 			}
-			Err(e) => cx.throw_error(e.to_string())?
+			Err(e) => cx.throw_error(e.to_string())?,
 		},
 		#[cfg(target_os = "windows")]
 		"blurbehind" => match dwm_win32::apply_acrylic(
@@ -173,16 +173,16 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			match colour {
 				Some(t) => match csscolorparser::parse(&t.downcast_or_throw::<JsString, FunctionContext>(&mut cx)?.value(&mut cx)) {
 					Ok(colour) => Some(colour.to_rgba8()),
-					Err(_) => None
+					Err(_) => None,
 				},
-				None => None
-			}
+				None => None,
+			},
 		) {
 			Ok(_) => {
 				*state = VibeState::Blurbehind;
 				Ok(cx.undefined())
 			}
-			Err(e) => cx.throw_error(e.to_string())?
+			Err(e) => cx.throw_error(e.to_string())?,
 		},
 		#[cfg(target_os = "windows")]
 		"mica" => match dwm_win32::apply_mica(handle) {
@@ -190,9 +190,9 @@ pub fn apply_effect(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 				*state = VibeState::Mica;
 				Ok(cx.undefined())
 			}
-			Err(e) => cx.throw_error(e.to_string())?
+			Err(e) => cx.throw_error(e.to_string())?,
 		},
-		_ => cx.throw_type_error(VibeError::UnknownEffect(effect).to_string())
+		_ => cx.throw_type_error(VibeError::UnknownEffect(effect).to_string()),
 	}
 }
 
@@ -240,7 +240,7 @@ pub fn force_theme(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 			let _ = dwm_win32::force_light_theme(handle);
 			Ok(cx.undefined())
 		}
-		_ => cx.throw_type_error(VibeError::UnknownTheme(effect).to_string())
+		_ => cx.throw_type_error(VibeError::UnknownTheme(effect).to_string()),
 	}
 }
 

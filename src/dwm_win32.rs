@@ -22,9 +22,9 @@ use windows_sys::Win32::{
 	Graphics::Dwm::{DwmExtendFrameIntoClientArea, DwmSetWindowAttribute, DWMWINDOWATTRIBUTE},
 	System::{
 		LibraryLoader::{GetProcAddress, LoadLibraryA},
-		SystemInformation::OSVERSIONINFOW
+		SystemInformation::OSVERSIONINFOW,
 	},
-	UI::Controls::MARGINS
+	UI::Controls::MARGINS,
 };
 
 use crate::VibeError;
@@ -60,7 +60,7 @@ static WVER: Lazy<(u32, u32, u32)> = Lazy::new(|| {
 		dwMinorVersion: 0,
 		dwBuildNumber: 0,
 		dwPlatformId: 0,
-		szCSDVersion: [0; 128]
+		szCSDVersion: [0; 128],
 	};
 	unsafe { (RtlGetVersion)(&mut vi as _) };
 	(vi.dwMajorVersion, vi.dwMinorVersion, vi.dwBuildNumber)
@@ -71,7 +71,7 @@ static WVER: Lazy<(u32, u32, u32)> = Lazy::new(|| {
 enum ACCENT_STATE {
 	ACCENT_DISABLED = 0,
 	ACCENT_ENABLE_BLURBEHIND = 3,
-	ACCENT_ENABLE_ACRYLICBLURBEHIND = 4
+	ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
 }
 
 #[repr(C)]
@@ -79,21 +79,21 @@ struct ACCENT_POLICY {
 	AccentState: u32,
 	AccentFlags: u32,
 	GradientColour: u32,
-	AnimationId: u32
+	AnimationId: u32,
 }
 
 #[repr(C)]
 struct WINDOWCOMPOSITIONATTRIBDATA {
 	Attrib: WINDOWCOMPOSITIONATTRIB,
 	pvData: *mut c_void,
-	cbData: usize
+	cbData: usize,
 }
 
 #[repr(C)]
 enum DWM_SYSTEMBACKDROP_TYPE {
 	DWMSBT_DISABLE = 1,
 	DWMSBT_MAINWINDOW = 2,      // Mica
-	DWMSBT_TRANSIENTWINDOW = 3  // Acrylic
+	DWMSBT_TRANSIENTWINDOW = 3, // Acrylic
 }
 
 #[inline]
@@ -132,12 +132,12 @@ unsafe fn set_accent_policy(hwnd: HWND, accent_state: ACCENT_STATE, colour: Opti
 			AccentState: accent_state as _,
 			AccentFlags: if is_acrylic { 0 } else { 2 },
 			GradientColour: (colour[0] as u32) | (colour[1] as u32) << 8 | (colour[2] as u32) << 16 | (colour[3] as u32) << 24,
-			AnimationId: 0
+			AnimationId: 0,
 		};
 		let mut data = WINDOWCOMPOSITIONATTRIBDATA {
 			Attrib: 0x13,
 			pvData: &mut policy as *mut _ as _,
-			cbData: std::mem::size_of_val(&policy)
+			cbData: std::mem::size_of_val(&policy),
 		};
 		SetWindowCompositionAttribute(hwnd, &mut data as *mut _ as _);
 	}
@@ -148,7 +148,7 @@ unsafe fn extend_client_area(hwnd: HWND) {
 		cxLeftWidth: -1,
 		cxRightWidth: -1,
 		cyBottomHeight: -1,
-		cyTopHeight: -1
+		cyTopHeight: -1,
 	};
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
 }
@@ -158,7 +158,7 @@ unsafe fn reset_client_area(hwnd: HWND) {
 		cxLeftWidth: 0,
 		cxRightWidth: 0,
 		cyBottomHeight: 0,
-		cyTopHeight: 0
+		cyTopHeight: 0,
 	};
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
 }
@@ -208,7 +208,7 @@ pub fn apply_acrylic(hwnd: HWND, unified: bool, acrylic_blurbehind: bool, colour
 				} else {
 					ACCENT_STATE::ACCENT_ENABLE_BLURBEHIND
 				},
-				Some(colour.unwrap_or([40, 40, 40, 0]))
+				Some(colour.unwrap_or([40, 40, 40, 0])),
 			);
 		}
 	} else {
