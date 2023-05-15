@@ -27,7 +27,8 @@
 		"test": "cargo test"
 	},
 	"dependencies": {
-		"cargo-cp-artifact": "^0.1.6"
+		"cargo-cp-artifact": "^0.1.8",
+		"electron": "^24.3.0"
 	},
 	"peerDependencies": {
 		"electron": ">=11.0"

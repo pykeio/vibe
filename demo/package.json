@@ -5,6 +5,6 @@
 	},
 	"dependencies": {
 		"@pyke/vibe": "file:..",
-		"electron": "*"
+		"electron": "^23.3.2"
 	}
 }
